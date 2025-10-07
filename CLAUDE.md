@@ -54,6 +54,155 @@ This is a Laravel 12 + Vue 3 + Inertia.js application with the following key arc
 - 2FA support with recovery codes
 - Settings pages for profile, password, appearance
 
+## Plan de Développement - Plateforme de Services à Domicile
+
+### Vue d'ensemble
+Création d'une plateforme de mise en relation prestataires/clients inspirée de Wecasa.fr, avec design moderne vert pastel/marron sur architecture Laravel 12 + Vue 3 + Inertia.js.
+
+### PHASE 1 - FONDATIONS (2-3 semaines)
+
+#### Système de rôles et permissions
+- Installation spatie/laravel-permission
+- Création des rôles : client, prestataire, admin
+- Middlewares de protection des routes
+- Permissions granulaires par fonctionnalité
+
+#### Base de données
+- Migration users : user_type, phone, address, verification_status
+- Migration categories : name, description, icon, status, parent_id
+- Migration services : title, description, price_min, price_max, duration, category_id
+- Migration user_profiles : bio, experience, certifications, availability_json
+- Migration booking_requests : status, scheduled_date, price, notes, client_id, provider_id
+- Seeders pour données de démonstration
+
+#### Design System
+- Configuration Tailwind CSS v4 avec palette vert pastel (#A8E6A3, #7DD87D) et marron (#8B4513, #A0522D)
+- Composants UI de base : Button, Card, Input, Modal, Badge
+- Layout principal avec navigation adaptative selon rôle
+- Responsive design mobile-first
+
+### PHASE 2 - GESTION PRESTATAIRES (2-3 semaines)
+
+#### Inscription et validation
+- ProviderRegistrationController avec validation KYC
+- Formulaire multi-étapes avec upload de documents
+- Système de validation admin des prestataires
+- Interface de gestion du statut d'approbation
+
+#### Gestion des services
+- CRUD complet des services proposés
+- Gestion des tarifs et forfaits
+- Upload de galerie photos/vidéos
+- Gestion des zones d'intervention
+
+#### Dashboard prestataire
+- Statistiques (revenus, réservations, avis)
+- Calendrier des disponibilités
+- Gestion des demandes en attente
+
+### PHASE 3 - INTERFACE CLIENT (2-3 semaines)
+
+#### Recherche et navigation
+- Page d'accueil avec moteur de recherche intelligent
+- Filtres avancés : catégorie, prix, localisation, notes, disponibilité
+- Système de géolocalisation avec cartes interactives
+- Pages de catégories organisées
+
+#### Profils prestataires
+- Pages détaillées avec galerie, avis, tarifs
+- Comparateur de prestataires
+- Système de favoris
+- Calendrier de disponibilités public
+
+#### Demandes de service
+- Formulaire de demande personnalisé par catégorie
+- Système de devis automatique et personnalisé
+- Interface de suivi des demandes
+
+### PHASE 4 - SYSTÈME DE RÉSERVATIONS (3-4 semaines)
+
+#### Workflow de réservation
+- États : demande → devis → acceptation → réalisation → paiement → évaluation
+- Gestion des créneaux et disponibilités
+- Système d'annulation avec politique de remboursement
+- Notifications automatiques à chaque étape
+
+#### Messagerie intégrée
+- Chat temps réel entre client et prestataire
+- Envoi de photos/documents
+- Historique des conversations
+- Notifications push
+
+#### Gestion des interventions
+- Check-in/check-out pour prestataires
+- Rapport d'intervention avec photos
+- Validation client de la prestation
+- Gestion des litiges
+
+### PHASE 5 - PAIEMENTS (2-3 semaines)
+
+#### Intégration financière
+- Laravel Cashier + Stripe pour paiements sécurisés
+- Système de commissions plateforme (%)
+- Portefeuille virtuel prestataires
+- Facturation automatique
+
+#### Gestion financière
+- Paiements échelonnés pour gros montants
+- Système de caution/garantie
+- Remboursements automatiques
+- Reporting financier
+
+### PHASE 6 - SYSTÈME D'AVIS (1-2 semaines)
+
+#### Évaluations bidirectionnelles
+- Avis clients sur prestataires
+- Avis prestataires sur clients
+- Système de notes détaillées par critère
+- Modération automatique et manuelle
+
+#### Système de confiance
+- Badges et certifications
+- Score de fiabilité
+- Vérification d'identité
+- Assurance qualité
+
+### PHASE 7 - ADMINISTRATION (2 semaines)
+
+#### Dashboard admin
+- Statistiques globales de la plateforme
+- Gestion des utilisateurs et modération
+- Validation des prestataires
+- Gestion des catégories et services
+
+#### Outils de support
+- Interface de gestion des litiges
+- Support client intégré
+- Système de tickets
+- Outils de communication de masse
+
+### PHASE 8 - FONCTIONNALITÉS AVANCÉES (3-4 semaines)
+
+#### Optimisations techniques
+- Cache Redis pour performances
+- Indexation ElasticSearch pour recherche
+- API mobile responsive
+- PWA pour installation mobile
+
+#### Intelligence artificielle
+- Algorithme de recommandation
+- Pricing dynamique
+- Détection de fraude
+- Chatbot support client
+
+### Estimation totale : 16-22 semaines
+
+#### Technologies utilisées
+- **Backend** : Laravel 12, MySQL, Redis, Stripe
+- **Frontend** : Vue 3, TypeScript, Inertia.js, Tailwind CSS v4
+- **Outils** : Pest (tests), Pint (formatting), Wayfinder (routing)
+- **Services** : Stripe, Google Maps, SendGrid, Pusher
+
 <laravel-boost-guidelines>
 === foundation rules ===
 
@@ -66,6 +215,7 @@ This application is a Laravel application and its main Laravel ecosystems packag
 
 - php - 8.4.11
 - inertiajs/inertia-laravel (INERTIA) - v2
+- laravel/cashier (CASHIER) - v16
 - laravel/fortify (FORTIFY) - v1
 - laravel/framework (LARAVEL) - v12
 - laravel/prompts (PROMPTS) - v0

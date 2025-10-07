@@ -13,20 +13,22 @@ import { LoaderCircle } from 'lucide-vue-next';
 
 <template>
     <AuthBase
-        title="Create an account"
-        description="Enter your details below to create your account"
+        title="Créer votre compte"
+        description="Rejoignez ServicesPro et découvrez des services de qualité"
     >
-        <Head title="Register" />
+        <Head title="Inscription" />
 
         <Form
             v-bind="RegisteredUserController.store.form()"
             :reset-on-success="['password', 'password_confirmation']"
             v-slot="{ errors, processing }"
-            class="flex flex-col gap-6"
+            class="space-y-6"
         >
-            <div class="grid gap-6">
-                <div class="grid gap-2">
-                    <Label for="name">Name</Label>
+            <div class="space-y-4">
+                <div>
+                    <Label for="name" class="block text-sm font-medium text-gray-700 mb-2">
+                        Nom complet
+                    </Label>
                     <Input
                         id="name"
                         type="text"
@@ -35,13 +37,16 @@ import { LoaderCircle } from 'lucide-vue-next';
                         :tabindex="1"
                         autocomplete="name"
                         name="name"
-                        placeholder="Full name"
+                        placeholder="Jean Dupont"
+                        class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-base"
                     />
-                    <InputError :message="errors.name" />
+                    <InputError :message="errors.name" class="mt-2" />
                 </div>
 
-                <div class="grid gap-2">
-                    <Label for="email">Email address</Label>
+                <div>
+                    <Label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                        Adresse email
+                    </Label>
                     <Input
                         id="email"
                         type="email"
@@ -49,13 +54,16 @@ import { LoaderCircle } from 'lucide-vue-next';
                         :tabindex="2"
                         autocomplete="email"
                         name="email"
-                        placeholder="email@example.com"
+                        placeholder="votre@email.com"
+                        class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-base"
                     />
-                    <InputError :message="errors.email" />
+                    <InputError :message="errors.email" class="mt-2" />
                 </div>
 
-                <div class="grid gap-2">
-                    <Label for="password">Password</Label>
+                <div>
+                    <Label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+                        Mot de passe
+                    </Label>
                     <Input
                         id="password"
                         type="password"
@@ -63,13 +71,19 @@ import { LoaderCircle } from 'lucide-vue-next';
                         :tabindex="3"
                         autocomplete="new-password"
                         name="password"
-                        placeholder="Password"
+                        placeholder="••••••••"
+                        class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-base"
                     />
-                    <InputError :message="errors.password" />
+                    <InputError :message="errors.password" class="mt-2" />
+                    <p class="mt-2 text-xs text-gray-500">
+                        Au moins 8 caractères avec des lettres et des chiffres
+                    </p>
                 </div>
 
-                <div class="grid gap-2">
-                    <Label for="password_confirmation">Confirm password</Label>
+                <div>
+                    <Label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-2">
+                        Confirmer le mot de passe
+                    </Label>
                     <Input
                         id="password_confirmation"
                         type="password"
@@ -77,34 +91,84 @@ import { LoaderCircle } from 'lucide-vue-next';
                         :tabindex="4"
                         autocomplete="new-password"
                         name="password_confirmation"
-                        placeholder="Confirm password"
+                        placeholder="••••••••"
+                        class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-base"
                     />
-                    <InputError :message="errors.password_confirmation" />
+                    <InputError :message="errors.password_confirmation" class="mt-2" />
                 </div>
 
                 <Button
                     type="submit"
-                    class="mt-2 w-full"
+                    class="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-3 px-4 rounded-xl transition duration-200 shadow-lg hover:shadow-xl flex items-center justify-center mt-6"
                     tabindex="5"
                     :disabled="processing"
                     data-test="register-user-button"
                 >
                     <LoaderCircle
                         v-if="processing"
-                        class="h-4 w-4 animate-spin"
+                        class="h-5 w-5 animate-spin mr-2"
                     />
-                    Create account
+                    {{ processing ? 'Création en cours...' : 'Créer mon compte' }}
                 </Button>
             </div>
 
-            <div class="text-center text-sm text-muted-foreground">
-                Already have an account?
+            <!-- Avantages -->
+            <div class="bg-primary/5 rounded-xl p-4 border border-primary/10">
+                <h4 class="font-semibold text-gray-900 mb-2">Pourquoi rejoindre ServicesPro ?</h4>
+                <ul class="space-y-1 text-sm text-gray-600">
+                    <li class="flex items-center">
+                        <svg class="w-4 h-4 text-primary mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Accès à des milliers de services vérifiés
+                    </li>
+                    <li class="flex items-center">
+                        <svg class="w-4 h-4 text-primary mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Réservation simple et paiement sécurisé
+                    </li>
+                    <li class="flex items-center">
+                        <svg class="w-4 h-4 text-primary mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Support client disponible 24/7
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Séparateur -->
+            <div class="relative">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-300"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="bg-white px-4 text-gray-500">ou</span>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <div class="text-center space-y-4">
+                <p class="text-sm text-gray-600">
+                    Vous avez déjà un compte ?
+                </p>
                 <TextLink
                     :href="login()"
-                    class="underline underline-offset-4"
                     :tabindex="6"
-                    >Log in</TextLink
+                    class="w-full inline-flex justify-center items-center px-4 py-3 border-2 border-primary text-primary rounded-xl font-semibold hover:bg-primary hover:text-white transition duration-200"
                 >
+                    Se connecter
+                </TextLink>
+            </div>
+
+            <!-- Liens légaux -->
+            <div class="text-center pt-6 border-t border-gray-200">
+                <p class="text-xs text-gray-500">
+                    En créant un compte, vous acceptez nos 
+                    <TextLink href="/terms" class="text-primary hover:underline">Conditions d'utilisation</TextLink>
+                    et notre 
+                    <TextLink href="/privacy" class="text-primary hover:underline">Politique de confidentialité</TextLink>
+                </p>
             </div>
         </Form>
     </AuthBase>

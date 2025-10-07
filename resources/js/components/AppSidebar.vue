@@ -14,14 +14,20 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-vue-next';
+import { BookOpen, Folder, LayoutGrid, Calendar } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
+import { route } from '@/utils/routes';
 
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
+    },
+    {
+        title: 'Mes Réservations',
+        href: route('bookings.index'),
+        icon: Calendar,
     },
 ];
 
