@@ -255,6 +255,18 @@
             </button>
           </div>
 
+          <!-- Actions pour clients -->
+          <div v-if="isClient" class="space-y-3">
+            <!-- Payer -->
+            <Link
+              v-if="canPay"
+              :href="route('payments.create', booking.id)"
+              class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-center block"
+            >
+              Payer maintenant ({{ booking.final_price || booking.quoted_price }}€)
+            </Link>
+          </div>
+
           <!-- Actions communes -->
           <div class="space-y-3">
             <!-- Annuler -->
@@ -359,7 +371,8 @@ const props = defineProps({
   canAccept: Boolean,
   canReject: Boolean,
   canComplete: Boolean,
-  canCancel: Boolean
+  canCancel: Boolean,
+  canPay: Boolean
 })
 
 // Modal state

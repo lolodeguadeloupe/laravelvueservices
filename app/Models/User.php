@@ -153,4 +153,109 @@ class User extends Authenticatable
     {
         return $this->providerBookings()->completed()->count();
     }
+
+    // Relations de paiements
+    public function clientPayments(): HasMany
+    {
+        return $this->hasMany(Payment::class, 'client_id');
+    }
+
+    public function providerPayments(): HasMany
+    {
+        return $this->hasMany(Payment::class, 'provider_id');
+    }
+
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
+    /**
+     * Get reviews received by this user
+     */
+    public function reviewsReceived(): HasMany
+    {
+        return $this->hasMany(Review::class, 'reviewed_id');
+    }
+
+    /**
+     * Get reviews written by this user
+     */
+    public function reviewsWritten(): HasMany
+    {
+        return $this->hasMany(Review::class, 'reviewer_id');
+    }
+
+    /**
+     * Get approved reviews received
+     */
+    public function approvedReviewsReceived(): HasMany
+    {
+        return $this->reviewsReceived()->where('status', 'approved');
+    }
+
+    /**
+     * Calculate and update user's average rating based on approved reviews
+     */
+    public function updateAverageRating(): void
+    {
+        $averageRating = Review::where('reviewed_id', $this->id)
+            ->where('status', 'approved')
+            ->avg('overall_rating');
+
+        // Mettre à jour le rating dans le profil utilisateur
+        if ($this->profile) {
+            $this->profile->update([
+                'rating' => $averageRating ? round($averageRating, 2) : null,
+            ]);
+        }
+    }
+
+    /**
+     * Check if user can review a specific booking
+     */
+    public function canReview($booking): bool
+    {
+        // Must be either client or provider of the booking
+        if ($this->id !== $booking->client_id && $this->id !== $booking->provider_id) {
+            return false;
+        }
+
+        // Booking must be completed
+        if ($booking->status !== 'completed') {
+            return false;
+        }
+
+        // Must not have already reviewed this booking
+        return !Review::where('booking_request_id', $booking->id)
+            ->where('reviewer_id', $this->id)
+            ->exists();
+    }
+
+    /**
+     * Get review statistics for this user
+     */
+    public function getReviewStats(): array
+    {
+        $receivedReviews = $this->approvedReviewsReceived();
+        
+        return [
+            'total_reviews' => $receivedReviews->count(),
+            'average_rating' => $receivedReviews->avg('overall_rating'),
+            'rating_distribution' => [
+                5 => $receivedReviews->where('overall_rating', 5)->count(),
+                4 => $receivedReviews->where('overall_rating', 4)->count(),
+                3 => $receivedReviews->where('overall_rating', 3)->count(),
+                2 => $receivedReviews->where('overall_rating', 2)->count(),
+                1 => $receivedReviews->where('overall_rating', 1)->count(),
+            ],
+            'detailed_ratings' => [
+                'quality' => $receivedReviews->whereNotNull('quality_rating')->avg('quality_rating'),
+                'communication' => $receivedReviews->whereNotNull('communication_rating')->avg('communication_rating'),
+                'punctuality' => $receivedReviews->whereNotNull('punctuality_rating')->avg('punctuality_rating'),
+                'professionalism' => $receivedReviews->whereNotNull('professionalism_rating')->avg('professionalism_rating'),
+                'value' => $receivedReviews->whereNotNull('value_rating')->avg('value_rating'),
+            ],
+        ];
+    }
 }

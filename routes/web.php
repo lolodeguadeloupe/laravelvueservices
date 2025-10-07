@@ -2,9 +2,11 @@
 
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProviderDashboardController;
 use App\Http\Controllers\ProviderRegistrationController;
 use App\Http\Controllers\PublicServiceController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ServiceController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -84,6 +86,43 @@ Route::middleware(['auth', 'verified'])->group(function () {
     
     // Route commune pour l'annulation
     Route::patch('bookings/{booking}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
+});
+
+// Routes de paiement
+Route::middleware(['auth'])->group(function () {
+    Route::get('bookings/{booking}/payment', [PaymentController::class, 'create'])->name('payments.create');
+    Route::post('bookings/{booking}/payment/intent', [PaymentController::class, 'createIntent'])->name('payments.intent');
+    Route::post('payments/confirm', [PaymentController::class, 'confirm'])->name('payments.confirm');
+    Route::post('payments/{payment}/refund', [PaymentController::class, 'refund'])->name('payments.refund');
+});
+
+// Webhook Stripe (sans auth)
+Route::post('webhooks/stripe/payments', [PaymentController::class, 'webhook'])->name('payments.webhook');
+
+// Routes des avis
+Route::middleware(['auth'])->group(function () {
+    // Routes publiques des avis
+    Route::get('reviews', [ReviewController::class, 'index'])->name('reviews.index');
+    Route::get('reviews/{review}', [ReviewController::class, 'show'])->name('reviews.show');
+    
+    // Création d'avis
+    Route::get('bookings/{booking}/review', [ReviewController::class, 'create'])->name('reviews.create');
+    Route::post('bookings/{booking}/review', [ReviewController::class, 'store'])->name('reviews.store');
+    
+    // Réponses aux avis
+    Route::post('reviews/{review}/respond', [ReviewController::class, 'respond'])->name('reviews.respond');
+    
+    // Réactions aux avis
+    Route::post('reviews/{review}/helpful', [ReviewController::class, 'helpful'])->name('reviews.helpful');
+    Route::post('reviews/{review}/not-helpful', [ReviewController::class, 'notHelpful'])->name('reviews.not-helpful');
+    Route::post('reviews/{review}/report', [ReviewController::class, 'report'])->name('reviews.report');
+});
+
+// Routes d'administration des avis
+Route::middleware(['auth', 'can:moderate-reviews'])->prefix('admin/reviews')->name('admin.reviews.')->group(function () {
+    Route::get('moderate', [ReviewController::class, 'moderate'])->name('moderate');
+    Route::post('{review}/approve', [ReviewController::class, 'approve'])->name('approve');
+    Route::post('{review}/reject', [ReviewController::class, 'reject'])->name('reject');
 });
 
 require __DIR__.'/settings.php';

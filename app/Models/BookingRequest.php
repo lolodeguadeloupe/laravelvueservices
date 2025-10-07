@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 
 class BookingRequest extends Model
@@ -72,6 +73,26 @@ class BookingRequest extends Model
     public function cancelledBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'cancelled_by');
+    }
+
+    public function payment(): HasOne
+    {
+        return $this->hasOne(Payment::class);
+    }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    public function clientReview(): HasOne
+    {
+        return $this->hasOne(Review::class)->where('reviewer_type', 'client');
+    }
+
+    public function providerReview(): HasOne
+    {
+        return $this->hasOne(Review::class)->where('reviewer_type', 'provider');
     }
 
     public function scopeStatus($query, string $status)
