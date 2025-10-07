@@ -59,6 +59,28 @@
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-ring: var(--sidebar-ring);
+
+    /* Couleurs Tailwind standards pour les services */
+    --color-orange-100: #fed7aa;
+    --color-orange-400: #fb923c;
+    --color-orange-500: #f97316;
+    --color-yellow-400: #facc15;
+    --color-amber-100: #fef3c7;
+    --color-blue-400: #60a5fa;
+    --color-sky-200: #bae6fd;
+    --color-pink-300: #f9a8d4;
+    --color-pink-500: #ec4899;
+    --color-cyan-500: #06b6d4;
+    --color-gray-50: #f9fafb;
+    --color-gray-100: #f3f4f6;
+    --color-gray-200: #e5e7eb;
+    --color-gray-400: #9ca3af;
+    --color-gray-500: #6b7280;
+    --color-gray-600: #4b5563;
+    --color-gray-700: #374151;
+    --color-gray-800: #1f2937;
+    --color-gray-900: #111827;
+    --color-white: #ffffff;
 }
 
 /*
@@ -169,6 +191,32 @@
     body {
         @apply bg-background text-foreground;
     }
+    
+    /* Classes pour les cartes de services - forcées dans base */
+    .service-menage {
+        background-color: #fb923c !important;
+        color: #ffffff !important;
+    }
+    .service-garde-enfants {
+        background-color: #fef3c7 !important;
+        color: #1f2937 !important;
+    }
+    .service-coiffure {
+        background-color: #facc15 !important;
+        color: #1f2937 !important;
+    }
+    .service-beaute {
+        background-color: #bae6fd !important;
+        color: #1f2937 !important;
+    }
+    .service-massage {
+        background-color: #f9a8d4 !important;
+        color: #1f2937 !important;
+    }
+    .service-coach-sportif {
+        background-color: #60a5fa !important;
+        color: #ffffff !important;
+    }
 }
 
 /* Classes utilitaires spécifiques à la plateforme de services */
@@ -182,6 +230,13 @@
     }
     .border-service-primary {
         @apply border-primary;
+    }
+    
+    /* Force inclusion des classes Tailwind pour les services */
+    .service-colors-force-include {
+        @apply bg-orange-400 bg-amber-100 bg-yellow-400 bg-sky-200 bg-pink-300 bg-blue-400;
+        @apply text-white text-gray-800;
+        display: none; /* Classe cachée juste pour forcer l'inclusion */
     }
     
     /* Couleurs pour les statuts de réservation */
@@ -231,4 +286,30 @@
         from { opacity: 0; transform: translateY(10px); }
         to { opacity: 1; transform: translateY(0); }
     }
+}
+
+/* CLASSES SERVICES - HORS LAYER POUR FORCER INCLUSION */
+.service-menage {
+    background-color: #fb923c !important;
+    color: #ffffff !important;
+}
+.service-garde-enfants {
+    background-color: #fef3c7 !important;
+    color: #1f2937 !important;
+}
+.service-coiffure {
+    background-color: #facc15 !important;
+    color: #1f2937 !important;
+}
+.service-beaute {
+    background-color: #bae6fd !important;
+    color: #1f2937 !important;
+}
+.service-massage {
+    background-color: #f9a8d4 !important;
+    color: #1f2937 !important;
+}
+.service-coach-sportif {
+    background-color: #60a5fa !important;
+    color: #ffffff !important;
 }

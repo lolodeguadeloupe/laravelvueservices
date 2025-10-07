@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Service;
 use App\Models\Category;
+use App\Models\Service;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -32,7 +32,7 @@ class PublicServiceController extends Controller
         if ($request->filled('location')) {
             $query->whereHas('provider.profile', function ($q) use ($request) {
                 $q->where('city', 'like', '%'.$request->location.'%')
-                  ->orWhere('postal_code', 'like', '%'.$request->location.'%');
+                    ->orWhere('postal_code', 'like', '%'.$request->location.'%');
             });
         }
 
@@ -40,7 +40,7 @@ class PublicServiceController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', '%'.$search.'%')
-                  ->orWhere('description', 'like', '%'.$search.'%');
+                    ->orWhere('description', 'like', '%'.$search.'%');
             });
         }
 
@@ -55,9 +55,56 @@ class PublicServiceController extends Controller
         $services = $query->paginate(12);
         $categories = Category::orderBy('name')->get();
 
+        // Catégories principales avec leurs couleurs et icônes
+        $featuredCategories = [
+            [
+                'name' => 'Ménage',
+                'subtitle' => 'et repassage',
+                'cssClass' => 'service-menage',
+                'icon' => '🧽',
+                'slug' => 'menage',
+            ],
+            [
+                'name' => 'Garde d\'enfants',
+                'subtitle' => 'et babysitting',
+                'cssClass' => 'service-garde-enfants',
+                'icon' => '👶',
+                'slug' => 'garde-enfants',
+            ],
+            [
+                'name' => 'Coiffure',
+                'subtitle' => 'à domicile',
+                'cssClass' => 'service-coiffure',
+                'icon' => '✂️',
+                'slug' => 'coiffure',
+            ],
+            [
+                'name' => 'Beauté',
+                'subtitle' => 'à domicile',
+                'cssClass' => 'service-beaute',
+                'icon' => '💅',
+                'slug' => 'beaute',
+            ],
+            [
+                'name' => 'Massage',
+                'subtitle' => 'à domicile',
+                'cssClass' => 'service-massage',
+                'icon' => '💆',
+                'slug' => 'massage',
+            ],
+            [
+                'name' => 'Coach sportif',
+                'subtitle' => 'à domicile',
+                'cssClass' => 'service-coach-sportif',
+                'icon' => '🏋️',
+                'slug' => 'coach-sportif',
+            ],
+        ];
+
         return Inertia::render('Services/Index', [
             'services' => $services,
             'categories' => $categories,
+            'featuredCategories' => $featuredCategories,
             'filters' => [
                 'search' => $request->search ?? '',
                 'category' => $request->category ?? '',
@@ -74,14 +121,14 @@ class PublicServiceController extends Controller
     public function show(Service $service)
     {
         // Vérifier que le service est actif et que le prestataire est approuvé
-        if (!$service->is_active || !$service->provider->is_approved) {
+        if (! $service->is_active || ! $service->provider->is_approved) {
             abort(404);
         }
 
         $service->load([
             'category',
             'provider.profile',
-            'images'
+            'images',
         ]);
 
         // Services similaires

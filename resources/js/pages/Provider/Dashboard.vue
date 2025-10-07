@@ -101,48 +101,76 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <!-- Colonne principale -->
           <div class="lg:col-span-2 space-y-8">
-            <!-- Demandes récentes -->
+            <!-- Graphique des gains -->
             <div class="bg-white shadow rounded-lg">
               <div class="px-4 py-5 sm:p-6">
-                <div class="flex items-center justify-between mb-4">
-                  <h3 class="text-lg font-medium text-gray-900">Demandes récentes</h3>
-                  <Link :href="providerBookings.url()" class="text-sm text-primary hover:text-primary/80">
-                    Voir toutes
-                  </Link>
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Évolution des gains (6 derniers mois)</h3>
+                <div class="h-64">
+                  <div class="h-full flex items-end justify-between space-x-2">
+                    <div v-for="(month, index) in monthlyEarnings" :key="index" class="flex-1 flex flex-col items-center">
+                      <div 
+                        class="w-full bg-gradient-to-t from-primary to-primary/70 rounded-t-md transition-all duration-300 hover:from-primary/80 hover:to-primary/50"
+                        :style="{ height: Math.max((month.earnings / 1200 * 200), 10) + 'px' }"
+                        :title="`${month.month}: ${formatCurrency(month.earnings)}`"
+                      ></div>
+                      <span class="text-xs text-gray-600 mt-2 transform -rotate-45 origin-top-left">
+                        {{ month.month.split(' ')[0] }}
+                      </span>
+                    </div>
+                  </div>
                 </div>
+              </div>
+            </div>
+
+            <!-- Répartition des réservations -->
+            <div class="bg-white shadow rounded-lg">
+              <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Réservations par statut</h3>
+                <div class="grid grid-cols-2 gap-4">
+                  <div v-for="status in bookingsByStatus" :key="status.status" class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div class="flex items-center">
+                      <div 
+                        class="w-3 h-3 rounded-full mr-3" 
+                        :style="{ backgroundColor: status.color }"
+                      ></div>
+                      <span class="text-sm text-gray-700">{{ status.status }}</span>
+                    </div>
+                    <span class="text-lg font-semibold text-gray-900">{{ status.count }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Activité récente -->
+            <div class="bg-white shadow rounded-lg">
+              <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Activité récente</h3>
                 
-                <div v-if="recentRequests.length === 0" class="text-center py-6">
+                <div v-if="recentActivity.length === 0" class="text-center py-6">
                   <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                   </svg>
-                  <h3 class="mt-2 text-sm font-medium text-gray-900">Aucune demande</h3>
-                  <p class="mt-1 text-sm text-gray-500">Vous n'avez pas encore de demandes de réservation.</p>
+                  <h3 class="mt-2 text-sm font-medium text-gray-900">Aucune activité récente</h3>
+                  <p class="mt-1 text-sm text-gray-500">Votre activité récente apparaîtra ici.</p>
                 </div>
 
-                <div v-else class="space-y-3">
-                  <div v-for="request in recentRequests" :key="request.id" class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div class="flex items-center space-x-3">
-                      <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                          <span class="text-sm font-medium text-gray-700">
-                            {{ request.client?.profile?.first_name?.charAt(0) || 'C' }}
-                          </span>
-                        </div>
-                      </div>
-                      <div>
-                        <p class="text-sm font-medium text-gray-900">
-                          {{ request.client?.profile?.full_name || 'Client' }}
-                        </p>
-                        <p class="text-sm text-gray-500">{{ request.service?.title }}</p>
-                      </div>
+                <div v-else class="space-y-4">
+                  <div v-for="activity in recentActivity" :key="activity.title" class="flex items-start space-x-3">
+                    <div 
+                      class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center"
+                      :class="`bg-${activity.color}-100`"
+                    >
+                      <svg class="w-4 h-4" :class="`text-${activity.color}-600`" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path v-if="activity.icon === 'calendar'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        <path v-if="activity.icon === 'star'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                        <path v-if="activity.icon === 'edit'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        <path v-if="activity.icon === 'credit-card'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                      </svg>
                     </div>
-                    <div class="flex items-center space-x-2">
-                      <span :class="getStatusBadgeClass(request.status)" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium">
-                        {{ getStatusText(request.status) }}
-                      </span>
-                      <span class="text-sm font-medium text-gray-900">
-                        {{ formatCurrency(request.total_amount) }}
-                      </span>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium text-gray-900">{{ activity.title }}</p>
+                      <p class="text-sm text-gray-600">{{ activity.description }}</p>
+                      <p class="text-xs text-gray-500 mt-1">{{ formatRelativeTime(activity.date) }}</p>
                     </div>
                   </div>
                 </div>
@@ -269,8 +297,11 @@ import {
 
 defineProps({
   stats: Object,
-  recentRequests: Array,
+  monthlyEarnings: Array,
+  bookingsByStatus: Array,
   services: Array,
+  recentActivity: Array,
+  upcomingBookings: Array,
   provider: Object,
 })
 
@@ -303,5 +334,20 @@ const getStatusText = (status) => {
     'rejected': 'Refusée',
   }
   return texts[status] || status
+}
+
+const formatRelativeTime = (date) => {
+  const now = new Date()
+  const past = new Date(date)
+  const diffInHours = Math.floor((now - past) / (1000 * 60 * 60))
+  
+  if (diffInHours < 1) {
+    return 'Il y a moins d\'une heure'
+  } else if (diffInHours < 24) {
+    return `Il y a ${diffInHours} heure${diffInHours > 1 ? 's' : ''}`
+  } else {
+    const diffInDays = Math.floor(diffInHours / 24)
+    return `Il y a ${diffInDays} jour${diffInDays > 1 ? 's' : ''}`
+  }
 }
 </script>

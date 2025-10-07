@@ -227,7 +227,7 @@ class User extends Authenticatable
         }
 
         // Must not have already reviewed this booking
-        return !Review::where('booking_request_id', $booking->id)
+        return ! Review::where('booking_request_id', $booking->id)
             ->where('reviewer_id', $this->id)
             ->exists();
     }
@@ -238,7 +238,7 @@ class User extends Authenticatable
     public function getReviewStats(): array
     {
         $receivedReviews = $this->approvedReviewsReceived();
-        
+
         return [
             'total_reviews' => $receivedReviews->count(),
             'average_rating' => $receivedReviews->avg('overall_rating'),
@@ -257,5 +257,79 @@ class User extends Authenticatable
                 'value' => $receivedReviews->whereNotNull('value_rating')->avg('value_rating'),
             ],
         ];
+    }
+
+    /**
+     * Get badges earned by this user
+     */
+    public function badges()
+    {
+        return $this->belongsToMany(Badge::class, 'user_badges')
+            ->withPivot(['earned_at', 'awarded_by', 'reason', 'context', 'is_featured', 'is_public'])
+            ->withTimestamps();
+    }
+
+    /**
+     * Get user badges with full details
+     */
+    public function userBadges(): HasMany
+    {
+        return $this->hasMany(UserBadge::class);
+    }
+
+    /**
+     * Get public badges for this user
+     */
+    public function publicBadges()
+    {
+        return $this->badges()->wherePivot('is_public', true);
+    }
+
+    /**
+     * Get featured badges for this user
+     */
+    public function featuredBadges()
+    {
+        return $this->badges()->wherePivot('is_featured', true);
+    }
+
+    /**
+     * Get total reputation points from badges
+     */
+    public function getTotalReputationPoints(): int
+    {
+        return $this->profile->reputation_points ?? 0;
+    }
+
+    /**
+     * Check if user has a specific badge
+     */
+    public function hasBadge(Badge $badge): bool
+    {
+        return $this->badges()->where('badge_id', $badge->id)->exists();
+    }
+
+    /**
+     * Get badge count by type
+     */
+    public function getBadgeCountByType(): array
+    {
+        return $this->userBadges()
+            ->join('badges', 'user_badges.badge_id', '=', 'badges.id')
+            ->groupBy('badges.type')
+            ->selectRaw('badges.type, count(*) as count')
+            ->pluck('count', 'type')
+            ->toArray();
+    }
+
+    /**
+     * Get recent badges (last 30 days)
+     */
+    public function recentBadges()
+    {
+        return $this->userBadges()
+            ->with('badge')
+            ->where('earned_at', '>=', now()->subDays(30))
+            ->orderBy('earned_at', 'desc');
     }
 }

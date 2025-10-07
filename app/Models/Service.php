@@ -68,6 +68,21 @@ class Service extends Model
         return $this->hasMany(BookingRequest::class);
     }
 
+    public function packages(): HasMany
+    {
+        return $this->hasMany(ServicePackage::class);
+    }
+
+    public function zones(): HasMany
+    {
+        return $this->hasMany(ServiceZone::class);
+    }
+
+    public function media(): HasMany
+    {
+        return $this->hasMany(ServiceMedia::class);
+    }
+
     public function scopeActive($query)
     {
         return $query->where('is_active', true);

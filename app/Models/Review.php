@@ -31,9 +31,14 @@ class Review extends Model
         'response',
         'response_at',
         'status',
+        'moderation_status',
         'moderated_by',
         'moderated_at',
         'moderation_reason',
+        'auto_moderation_flags',
+        'report_count',
+        'is_published',
+        'published_at',
         'is_verified',
         'is_featured',
         'helpful_count',
@@ -46,8 +51,11 @@ class Review extends Model
             'photos' => 'array',
             'response_at' => 'datetime',
             'moderated_at' => 'datetime',
+            'auto_moderation_flags' => 'array',
+            'published_at' => 'datetime',
             'is_verified' => 'boolean',
             'is_featured' => 'boolean',
+            'is_published' => 'boolean',
         ];
     }
 
@@ -100,6 +108,11 @@ class Review extends Model
         return $this->hasMany(ReviewReaction::class);
     }
 
+    public function reports(): HasMany
+    {
+        return $this->hasMany(ReviewReport::class);
+    }
+
     // Scopes
     public function scopeApproved($query)
     {
@@ -141,6 +154,31 @@ class Review extends Model
         return $query->where('overall_rating', '>=', $minRating);
     }
 
+    public function scopePendingModeration($query)
+    {
+        return $query->where('moderation_status', 'pending');
+    }
+
+    public function scopeFlagged($query)
+    {
+        return $query->where('moderation_status', 'flagged');
+    }
+
+    public function scopeModerated($query)
+    {
+        return $query->whereIn('moderation_status', ['approved', 'rejected']);
+    }
+
+    public function scopePublished($query)
+    {
+        return $query->where('is_published', true);
+    }
+
+    public function scopeReported($query)
+    {
+        return $query->where('report_count', '>', 0);
+    }
+
     // Status checks
     public function isPending(): bool
     {
@@ -162,14 +200,44 @@ class Review extends Model
         return $this->status === 'reported';
     }
 
+    public function isPendingModeration(): bool
+    {
+        return $this->moderation_status === 'pending';
+    }
+
+    public function isModerationApproved(): bool
+    {
+        return $this->moderation_status === 'approved';
+    }
+
+    public function isModerationRejected(): bool
+    {
+        return $this->moderation_status === 'rejected';
+    }
+
+    public function isFlagged(): bool
+    {
+        return $this->moderation_status === 'flagged';
+    }
+
+    public function isPublished(): bool
+    {
+        return $this->is_published;
+    }
+
+    public function hasReports(): bool
+    {
+        return $this->report_count > 0;
+    }
+
     public function hasResponse(): bool
     {
-        return !empty($this->response);
+        return ! empty($this->response);
     }
 
     public function canRespond(): bool
     {
-        return $this->isApproved() && !$this->hasResponse();
+        return $this->isApproved() && ! $this->hasResponse();
     }
 
     // Rating helpers
@@ -187,6 +255,7 @@ class Review extends Model
     public function getAverageDetailedRating(): float
     {
         $ratings = array_filter($this->getDetailedRatings());
+
         return empty($ratings) ? 0 : round(array_sum($ratings) / count($ratings), 1);
     }
 
@@ -203,8 +272,11 @@ class Review extends Model
     {
         $this->update([
             'status' => 'approved',
+            'moderation_status' => 'approved',
             'moderated_by' => $moderator?->id,
             'moderated_at' => now(),
+            'is_published' => true,
+            'published_at' => now(),
         ]);
     }
 
@@ -212,10 +284,50 @@ class Review extends Model
     {
         $this->update([
             'status' => 'rejected',
+            'moderation_status' => 'rejected',
             'moderated_by' => $moderator?->id,
             'moderated_at' => now(),
             'moderation_reason' => $reason,
+            'is_published' => false,
         ]);
+    }
+
+    public function flag(array $flags = [], ?User $moderator = null): void
+    {
+        $this->update([
+            'moderation_status' => 'flagged',
+            'auto_moderation_flags' => $flags,
+            'moderated_by' => $moderator?->id,
+            'moderated_at' => now(),
+            'is_published' => false,
+        ]);
+    }
+
+    public function reportBy(User $reporter, string $reason, ?string $description = null): ReviewReport
+    {
+        // Créer ou mettre à jour le signalement
+        $report = ReviewReport::updateOrCreate(
+            [
+                'review_id' => $this->id,
+                'reported_by' => $reporter->id,
+            ],
+            [
+                'reason' => $reason,
+                'description' => $description,
+            ]
+        );
+
+        // Mettre à jour le compteur de signalements
+        $this->update([
+            'report_count' => $this->reports()->count(),
+        ]);
+
+        // Si plus de 3 signalements, marquer comme signalé automatiquement
+        if ($this->report_count >= 3 && $this->isModerationApproved()) {
+            $this->flag(['auto_flagged' => 'multiple_reports']);
+        }
+
+        return $report;
     }
 
     public function addResponse(string $response, User $responder): void
@@ -275,8 +387,8 @@ class Review extends Model
     private function updateUserRating(): void
     {
         $user = $this->reviewed;
-        
-        if (!$user || !$user->profile) {
+
+        if (! $user || ! $user->profile) {
             return;
         }
 

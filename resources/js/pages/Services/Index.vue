@@ -14,6 +14,107 @@
             </div>
           </div>
 
+          <!-- Grille des catégories principales -->
+          <div class="mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+              <Link
+                v-for="category in featuredCategories"
+                :key="category.slug"
+                :href="route('services.index', { category: category.slug })"
+                :class="category.cssClass"
+                class="relative overflow-hidden rounded-2xl h-32 flex flex-col justify-between p-6 transition-transform duration-200 hover:scale-105 hover:shadow-lg group"
+              >
+                <div class="flex items-start justify-between">
+                  <div>
+                    <h3 class="text-xl font-bold leading-tight">{{ category.name }}</h3>
+                    <p class="text-sm opacity-90 mt-1">{{ category.subtitle }}</p>
+                  </div>
+                  <span class="text-2xl">{{ category.icon }}</span>
+                </div>
+                <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-opacity duration-200"></div>
+              </Link>
+            </div>
+
+            <!-- Section Services populaires -->
+            <div class="mt-12">
+              <h2 class="text-2xl font-bold text-gray-900 mb-6">Services à domicile populaires</h2>
+              <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6 mb-8">
+                <div class="bg-gradient-to-br from-green-100 to-green-200 rounded-2xl h-40 relative overflow-hidden group cursor-pointer transition-transform duration-200 hover:scale-105 border border-green-300">
+                  <div class="h-full flex items-center justify-center text-green-800">
+                    <div class="text-center">
+                      <div class="text-4xl mb-2">🌱</div>
+                      <p class="font-semibold text-lg">Jardinage</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl h-40 relative overflow-hidden group cursor-pointer transition-transform duration-200 hover:scale-105 border border-blue-300">
+                  <div class="h-full flex items-center justify-center text-blue-800">
+                    <div class="text-center">
+                      <div class="text-4xl mb-2">💅</div>
+                      <p class="font-semibold text-lg">Manucure</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="bg-gradient-to-br from-purple-100 to-purple-200 rounded-2xl h-40 relative overflow-hidden group cursor-pointer transition-transform duration-200 hover:scale-105 border border-purple-300">
+                  <div class="h-full flex items-center justify-center text-purple-800">
+                    <div class="text-center">
+                      <div class="text-4xl mb-2">🎨</div>
+                      <p class="font-semibold text-lg">Art thérapie</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="bg-gradient-to-br from-pink-100 to-pink-200 rounded-2xl h-40 relative overflow-hidden group cursor-pointer transition-transform duration-200 hover:scale-105 border border-pink-300">
+                  <div class="h-full flex items-center justify-center text-pink-800">
+                    <div class="text-center">
+                      <div class="text-4xl mb-2">🧹</div>
+                      <p class="font-semibold text-lg">Ménage et repassage</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-2xl h-40 relative overflow-hidden group cursor-pointer transition-transform duration-200 hover:scale-105 border border-yellow-300">
+                  <div class="h-full flex items-center justify-center text-yellow-800">
+                    <div class="text-center">
+                      <div class="text-4xl mb-2">👶</div>
+                      <p class="font-semibold text-lg">Garde d'enfants</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="bg-gradient-to-br from-teal-100 to-teal-200 rounded-2xl h-40 relative overflow-hidden group cursor-pointer transition-transform duration-200 hover:scale-105 border border-teal-300">
+                  <div class="h-full flex items-center justify-center text-teal-800">
+                    <div class="text-center">
+                      <div class="text-4xl mb-2">✂️</div>
+                      <p class="font-semibold text-lg">Coiffure à domicile</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="bg-gradient-to-br from-rose-100 to-rose-200 rounded-2xl h-40 relative overflow-hidden group cursor-pointer transition-transform duration-200 hover:scale-105 border border-rose-300">
+                  <div class="h-full flex items-center justify-center text-rose-800">
+                    <div class="text-center">
+                      <div class="text-4xl mb-2">💄</div>
+                      <p class="font-semibold text-lg">Beauté à domicile</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-2xl h-40 relative overflow-hidden group cursor-pointer transition-transform duration-200 hover:scale-105 border border-indigo-300">
+                  <div class="h-full flex items-center justify-center text-indigo-800">
+                    <div class="text-center">
+                      <div class="text-4xl mb-2">💆</div>
+                      <p class="font-semibold text-lg">Massage à domicile</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="bg-gradient-to-br from-amber-100 to-amber-200 rounded-2xl h-40 relative overflow-hidden group cursor-pointer transition-transform duration-200 hover:scale-105 border border-amber-300">
+                  <div class="h-full flex items-center justify-center text-amber-800">
+                    <div class="text-center">
+                      <div class="text-4xl mb-2">🏃</div>
+                      <p class="font-semibold text-lg">Coach à domicile</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Filtres -->
           <div class="bg-gray-50 rounded-lg p-6">
             <Form
@@ -172,6 +273,7 @@ import { route } from '@/utils/routes'
 defineProps({
   services: Object,
   categories: Array,
+  featuredCategories: Array,
   filters: Object
 })
 </script>
