@@ -15,6 +15,7 @@ class Transaction extends Model
     protected $fillable = [
         'uuid',
         'payment_id',
+        'wallet_id',
         'user_id',
         'type',
         'amount',
@@ -54,6 +55,11 @@ class Transaction extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function wallet(): BelongsTo
+    {
+        return $this->belongsTo(Wallet::class);
     }
 
     public function isPending(): bool

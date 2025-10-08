@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use App\Notifications\BookingStatusChanged;
 use Illuminate\Support\Str;
 
 class BookingRequest extends Model
@@ -32,6 +34,16 @@ class BookingRequest extends Model
         'cancelled_at',
         'cancellation_reason',
         'cancelled_by',
+        'started_at',
+        'finished_at',
+        'intervention_report',
+        'client_signature',
+        'provider_location',
+        'work_summary',
+        'before_photos',
+        'after_photos',
+        'requires_follow_up',
+        'follow_up_date',
     ];
 
     protected $casts = [
@@ -45,6 +57,15 @@ class BookingRequest extends Model
         'rejected_at' => 'datetime',
         'completed_at' => 'datetime',
         'cancelled_at' => 'datetime',
+        'started_at' => 'datetime',
+        'finished_at' => 'datetime',
+        'intervention_report' => 'array',
+        'client_signature' => 'array',
+        'provider_location' => 'array',
+        'before_photos' => 'array',
+        'after_photos' => 'array',
+        'requires_follow_up' => 'boolean',
+        'follow_up_date' => 'date',
     ];
 
     protected static function boot(): void
@@ -199,11 +220,146 @@ class BookingRequest extends Model
     {
         return match ($this->status) {
             'pending' => 'En attente',
+            'quoted' => 'Devis envoyé',
             'accepted' => 'Accepté',
+            'in_progress' => 'En cours',
             'completed' => 'Terminé',
             'cancelled' => 'Annulé',
             'rejected' => 'Refusé',
             default => 'Inconnu',
         };
     }
+
+    public function messages(): HasMany
+    {
+        return $this->hasMany(Message::class);
+    }
+
+    public function statusHistory(): HasMany
+    {
+        return $this->hasMany(BookingStatusHistory::class);
+    }
+
+    public function unreadMessagesFor(User $user): int
+    {
+        return $this->messages()
+            ->where('receiver_id', $user->id)
+            ->unread()
+            ->count();
+    }
+
+    public function isInProgress(): bool
+    {
+        return $this->status === 'in_progress';
+    }
+
+    public function isQuoted(): bool
+    {
+        return $this->status === 'quoted';
+    }
+
+    public function canBeStarted(): bool
+    {
+        return $this->isAccepted() && !$this->started_at;
+    }
+
+    public function canBeFinished(): bool
+    {
+        return $this->isInProgress() && $this->started_at && !$this->finished_at;
+    }
+
+    public function processPayment(): array
+    {
+        $commissionService = app(\App\Services\CommissionService::class);
+        return $commissionService->processPayment($this);
+    }
+
+    public function confirmPayment(): void
+    {
+        $commissionService = app(\App\Services\CommissionService::class);
+        $commissionService->confirmPayment($this);
+    }
+
+    public function createDispute(User $reportedBy, string $type, string $description, array $evidence = [], ?float $disputedAmount = null): Dispute
+    {
+        $reportedAgainst = $reportedBy->id === $this->client_id ? $this->provider : $this->client;
+
+        return Dispute::create([
+            'booking_request_id' => $this->id,
+            'reported_by' => $reportedBy->id,
+            'reported_against' => $reportedAgainst->id,
+            'type' => $type,
+            'description' => $description,
+            'evidence' => $evidence,
+            'disputed_amount' => $disputedAmount ?? $this->final_price ?? $this->quoted_price,
+        ]);
+    }
+
+    public function getDurationInMinutes(): ?int
+    {
+        if (!$this->started_at || !$this->finished_at) {
+            return null;
+        }
+
+        return $this->started_at->diffInMinutes($this->finished_at);
+    }
+
+    public function hasInterventionReport(): bool
+    {
+        return !empty($this->intervention_report);
+    }
+
+    public function logStatusChange(string $newStatus, User $user, ?string $reason = null, ?array $metadata = null): void
+    {
+        $oldStatus = $this->status;
+        
+        BookingStatusHistory::logStatusChange(
+            $this,
+            $oldStatus,
+            $newStatus,
+            $user,
+            $reason,
+            $metadata
+        );
+
+        // Créer un message système automatique
+        $statusMessages = [
+            'pending' => 'Demande créée',
+            'quoted' => 'Devis envoyé par le prestataire',
+            'accepted' => 'Demande acceptée par le prestataire',
+            'in_progress' => 'Intervention commencée',
+            'completed' => 'Intervention terminée',
+            'cancelled' => 'Réservation annulée',
+            'rejected' => 'Demande refusée',
+        ];
+
+        if (isset($statusMessages[$newStatus])) {
+            Message::createSystemMessage(
+                $this,
+                $statusMessages[$newStatus],
+                $metadata
+            );
+        }
+
+        // Envoyer notification selon le destinataire
+        $this->sendStatusNotification($newStatus, $user);
+    }
+
+    private function sendStatusNotification(string $newStatus, User $changedBy): void
+    {
+        // Déterminer qui doit recevoir la notification
+        $recipient = null;
+        
+        if ($changedBy->id === $this->provider_id) {
+            // Le prestataire a fait le changement, notifier le client
+            $recipient = $this->client;
+        } elseif ($changedBy->id === $this->client_id) {
+            // Le client a fait le changement, notifier le prestataire
+            $recipient = $this->provider;
+        }
+
+        if ($recipient) {
+            $recipient->notify(new BookingStatusChanged($this, $newStatus));
+        }
+}
 }

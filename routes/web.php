@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\Provider\ServiceController;
@@ -114,10 +115,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('bookings/{booking}/reject', [BookingController::class, 'reject'])->name('bookings.reject');
         Route::patch('bookings/{booking}/complete', [BookingController::class, 'complete'])->name('bookings.complete');
         Route::patch('bookings/{booking}/quote', [BookingController::class, 'quote'])->name('bookings.quote');
+        
+        // Gestion des interventions
+        Route::patch('bookings/{booking}/start-intervention', [BookingController::class, 'startIntervention'])->name('bookings.start-intervention');
+        Route::patch('bookings/{booking}/finish-intervention', [BookingController::class, 'finishIntervention'])->name('bookings.finish-intervention');
     });
 
     // Route commune pour l'annulation
     Route::patch('bookings/{booking}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
+    
+    // Routes de messagerie
+    Route::get('bookings/{booking}/messages', [MessageController::class, 'index'])->name('bookings.messages.index');
+    Route::post('bookings/{booking}/messages', [MessageController::class, 'store'])->name('bookings.messages.store');
+    Route::patch('messages/{message}/read', [MessageController::class, 'markAsRead'])->name('messages.read');
+    Route::get('messages/unread-count', [MessageController::class, 'unreadCount'])->name('messages.unread-count');
+    
+    // Route pour détails d'intervention
+    Route::get('bookings/{booking}/intervention', [BookingController::class, 'interventionDetails'])->name('bookings.intervention');
 });
 
 // Routes de paiement
