@@ -15,7 +15,7 @@ class PublicServiceController extends Controller
     public function index(Request $request)
     {
         $query = Service::query()
-            ->with(['category', 'provider.profile', 'images'])
+            ->with(['category', 'provider.profile', 'media'])
             ->where('is_active', true)
             ->whereHas('provider', function ($q) {
                 $q->where('verification_status', 'verified');
@@ -128,12 +128,12 @@ class PublicServiceController extends Controller
         $service->load([
             'category',
             'provider.profile',
-            'images',
+            'media',
         ]);
 
         // Services similaires
         $similarServices = Service::query()
-            ->with(['category', 'provider.profile', 'images'])
+            ->with(['category', 'provider.profile', 'media'])
             ->where('is_active', true)
             ->whereHas('provider', function ($q) {
                 $q->where('verification_status', 'verified');

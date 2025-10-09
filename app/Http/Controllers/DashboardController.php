@@ -22,7 +22,7 @@ class DashboardController extends Controller
             ->with([
                 'service.category',
                 'service.provider.profile',
-                'service.images'
+                'service.media'
             ])
             ->where('client_id', $user->id)
             ->orderBy('created_at', 'desc')
@@ -33,7 +33,7 @@ class DashboardController extends Controller
             ->with([
                 'category',
                 'provider.profile',
-                'images'
+                'media'
             ])
             ->where('is_active', true)
             ->whereHas('provider', function ($q) {
