@@ -565,18 +565,6 @@ const lastUpdate = '7 octobre 2025'
 </script>
 
 <style scoped>
-.prose h2 {
-  @apply text-2xl font-bold text-gray-900 mb-6 mt-8;
-}
-
-.prose h3 {
-  @apply text-lg font-semibold text-gray-900 mb-3 mt-4;
-}
-
-.prose p {
-  @apply text-gray-700 mb-4 leading-relaxed;
-}
-
 html {
   scroll-behavior: smooth;
 }

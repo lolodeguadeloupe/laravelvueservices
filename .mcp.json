@@ -4,7 +4,7 @@
             "command": "wsl",
             "args": [
                 "/usr/bin/php8.4",
-                "/home/laurent/mesprojets/servicesnumeriques/laravelsolution/vueapp/artisan",
+                "/home/laurent/mesprojets/servicesnumeriques/laravelsolution/laravelvueservices/artisan",
                 "boost:mcp"
             ]
         }

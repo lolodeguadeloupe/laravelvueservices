@@ -262,7 +262,18 @@
 <script setup lang="ts">
 import { ref, reactive, watch } from 'vue'
 import { Head, Link, router } from '@inertiajs/vue3'
-import { debounce } from 'lodash-es'
+// Simple debounce function implementation
+const debounce = (func: Function, wait: number) => {
+  let timeout: NodeJS.Timeout
+  return function executedFunction(...args: any[]) {
+    const later = () => {
+      clearTimeout(timeout)
+      func(...args)
+    }
+    clearTimeout(timeout)
+    timeout = setTimeout(later, wait)
+  }
+}
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import StatsCard from '@/components/admin/StatsCard.vue'
 import Card from '@/components/ui/Card.vue'

@@ -280,16 +280,3 @@ import { route } from '@/utils/routes'
 const lastUpdate = '7 octobre 2025'
 </script>
 
-<style scoped>
-.prose h2 {
-  @apply text-2xl font-bold text-gray-900 mb-4 mt-8;
-}
-
-.prose h3 {
-  @apply text-xl font-semibold text-gray-900 mb-3 mt-6;
-}
-
-.prose p {
-  @apply text-gray-700 mb-4 leading-relaxed;
-}
-</style>

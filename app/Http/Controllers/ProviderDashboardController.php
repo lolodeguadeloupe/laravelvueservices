@@ -128,14 +128,68 @@ class ProviderDashboardController extends Controller
             ],
         ];
 
+        // Données adaptées pour le nouveau dashboard
+        $dashboardStats = [
+            'totalRevenue' => $stats['total_earnings'],
+            'thisMonthRevenue' => $stats['current_month_earnings'],
+            'totalBookings' => $stats['completed_bookings'] + $stats['pending_requests'],
+            'pendingBookings' => $stats['pending_requests'],
+            'completedBookings' => $stats['completed_bookings'],
+            'averageRating' => $stats['average_rating'],
+            'totalReviews' => $stats['reviews_count'],
+            'activeServices' => $stats['active_services']
+        ];
+
+        // Réservations récentes simulées
+        $recentBookings = [
+            [
+                'id' => 1,
+                'status' => 'pending',
+                'price' => 80,
+                'scheduled_date' => now()->addDays(2),
+                'client' => ['name' => 'Marie Dubois'],
+                'service' => ['title' => 'Ménage appartement']
+            ],
+            [
+                'id' => 2,
+                'status' => 'confirmed',
+                'price' => 120,
+                'scheduled_date' => now()->addDays(5),
+                'client' => ['name' => 'Pierre Martin'],
+                'service' => ['title' => 'Jardinage']
+            ],
+            [
+                'id' => 3,
+                'status' => 'completed',
+                'price' => 150,
+                'scheduled_date' => now()->subDay(),
+                'client' => ['name' => 'Sophie Laurent'],
+                'service' => ['title' => 'Bricolage']
+            ]
+        ];
+
+        // Notifications simulées
+        $notifications = [
+            [
+                'id' => 1,
+                'title' => 'Nouvelle réservation en attente',
+                'created_at' => now()->subHours(2)->format('d/m/Y H:i')
+            ],
+            [
+                'id' => 2,
+                'title' => 'Paiement reçu pour le service de bricolage',
+                'created_at' => now()->subHours(8)->format('d/m/Y H:i')
+            ]
+        ];
+
         return Inertia::render('Provider/Dashboard', [
-            'stats' => $stats,
-            'monthlyEarnings' => $monthlyEarnings,
-            'bookingsByStatus' => $bookingsByStatus,
-            'services' => $services,
-            'recentActivity' => $recentActivity,
-            'upcomingBookings' => $upcomingBookings,
             'provider' => $provider,
+            'stats' => $dashboardStats,
+            'recentBookings' => $recentBookings,
+            'services' => $services,
+            'upcomingBookings' => $upcomingBookings,
+            'revenueData' => $monthlyEarnings,
+            'notifications' => $notifications,
         ]);
     }
 
