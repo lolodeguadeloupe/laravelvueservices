@@ -37,7 +37,7 @@ class DashboardController extends Controller
             ])
             ->where('is_active', true)
             ->whereHas('provider', function ($q) {
-                $q->where('is_approved', true);
+                $q->where('verification_status', 'verified');
             })
             ->get();
 

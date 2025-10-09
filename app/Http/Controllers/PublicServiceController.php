@@ -18,7 +18,7 @@ class PublicServiceController extends Controller
             ->with(['category', 'provider.profile', 'images'])
             ->where('is_active', true)
             ->whereHas('provider', function ($q) {
-                $q->where('is_approved', true);
+                $q->where('verification_status', 'verified');
             })
             ->orderBy('created_at', 'desc');
 
@@ -121,7 +121,7 @@ class PublicServiceController extends Controller
     public function show(Service $service)
     {
         // Vérifier que le service est actif et que le prestataire est approuvé
-        if (! $service->is_active || ! $service->provider->is_approved) {
+        if (! $service->is_active || $service->provider->verification_status !== 'verified') {
             abort(404);
         }
 
@@ -136,7 +136,7 @@ class PublicServiceController extends Controller
             ->with(['category', 'provider.profile', 'images'])
             ->where('is_active', true)
             ->whereHas('provider', function ($q) {
-                $q->where('is_approved', true);
+                $q->where('verification_status', 'verified');
             })
             ->where('category_id', $service->category_id)
             ->where('id', '!=', $service->id)

@@ -59,6 +59,86 @@ This is a Laravel 12 + Vue 3 + Inertia.js application with the following key arc
 ### Vue d'ensemble
 Création d'une plateforme de mise en relation prestataires/clients inspirée de Wecasa.fr, avec design moderne vert pastel/marron sur architecture Laravel 12 + Vue 3 + Inertia.js.
 
+## 🚀 Plan de Déploiement avec Coolify
+
+### Configuration Actuelle
+- **Environnement de développement** : Laravel Sail avec MySQL 8.0 et Redis
+- **Base de données** : Migration complète de SQLite vers MySQL réussie
+- **Containers actifs** :
+  - Laravel (port 8080)
+  - MySQL (port 3307)  
+  - Redis (port 6380)
+
+### Fichiers de Déploiement Créés
+1. **docker-compose.prod.yml** - Configuration production avec 5 services :
+   - `app` : Application Laravel principale (port 80)
+   - `queue` : Worker pour tâches en arrière-plan
+   - `scheduler` : Cron jobs Laravel
+   - `mysql` : Base de données MySQL 8.0
+   - `redis` : Cache et sessions
+
+2. **Dockerfile.prod** - Image Docker optimisée pour production :
+   - PHP 8.4-FPM Alpine
+   - Nginx avec configuration optimisée
+   - Supervisor pour gestion des processus
+   - Extensions PHP requises (PDO MySQL, Redis)
+
+3. **deploy.sh** - Script de déploiement automatisé :
+   - Installation des dépendances
+   - Build des assets frontend
+   - Migrations de base de données
+   - Optimisations Laravel (cache, routes, vues)
+   - Configuration des permissions
+
+4. **.dockerignore** - Exclusion des fichiers non nécessaires
+5. **.env.prod.example** - Template des variables d'environnement
+6. **DEPLOY.md** - Documentation complète du déploiement
+
+### Variables d'Environnement Coolify
+```env
+# Application
+APP_NAME=ServicesPro
+APP_ENV=production
+APP_URL=https://votre-domaine.com
+
+# Base de données
+DB_CONNECTION=mysql
+DB_HOST=mysql
+DB_DATABASE=laravelvueservices
+DB_USERNAME=servicespro
+DB_PASSWORD=mot_de_passe_sécurisé
+
+# Cache et sessions
+CACHE_STORE=redis
+SESSION_DRIVER=redis
+QUEUE_CONNECTION=redis
+REDIS_HOST=redis
+
+# Premier déploiement
+INITIAL_DEPLOY=true
+```
+
+### Workflow de Déploiement
+1. **Push vers Git** → Coolify détecte automatiquement
+2. **Build Docker** → Construction de l'image production
+3. **Déploiement** → `deploy.sh` configure l'environnement
+4. **Validation** → Health checks vérifient le fonctionnement
+
+### Tests de Connectivité Validés ✅
+- **Database** : `mysql via TCP/IP` - Connecté
+- **Redis** : `OK` - Fonctionnel
+- **Application** : Serveur de développement actif
+
+### Prochaines Étapes
+1. Configuration du domaine dans Coolify
+2. Ajout des variables d'environnement
+3. Premier déploiement avec `INITIAL_DEPLOY=true`
+4. Tests de production
+
+---
+
+## Plan de Développement - Plateforme de Services à Domicile
+
 ### PHASE 1 - FONDATIONS (2-3 semaines)
 
 #### Système de rôles et permissions

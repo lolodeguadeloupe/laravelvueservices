@@ -1,0 +1,126 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: servicespro-app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - storage_data:/var/www/html/storage
+      - bootstrap_cache:/var/www/html/bootstrap/cache
+    environment:
+      - APP_ENV=production
+      - CONTAINER_ROLE=app
+    networks:
+      - servicespro
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "80:80"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/up"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  queue:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: servicespro-queue
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - storage_data:/var/www/html/storage
+      - bootstrap_cache:/var/www/html/bootstrap/cache
+    environment:
+      - APP_ENV=production
+      - CONTAINER_ROLE=queue
+    networks:
+      - servicespro
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: ["php", "artisan", "queue:work", "--verbose", "--tries=3", "--timeout=90"]
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: servicespro-scheduler
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - storage_data:/var/www/html/storage
+      - bootstrap_cache:/var/www/html/bootstrap/cache
+    environment:
+      - APP_ENV=production
+      - CONTAINER_ROLE=scheduler
+    networks:
+      - servicespro
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: ["php", "artisan", "schedule:work"]
+
+  mysql:
+    image: mysql/mysql-server:8.0
+    container_name: servicespro-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_HOST: "%"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - servicespro
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  redis:
+    image: redis:alpine
+    container_name: servicespro-redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    networks:
+      - servicespro
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+  storage_data:
+    driver: local
+  bootstrap_cache:
+    driver: local
+
+networks:
+  servicespro:
+    driver: bridge
