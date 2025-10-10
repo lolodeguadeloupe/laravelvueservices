@@ -36,7 +36,7 @@
               <Link :href="route('dashboard')" class="text-gray-600 hover:text-primary transition-colors">
                 Dashboard
               </Link>
-              <Link :href="route('logout')" method="post" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors">
+              <Link href="/logout" method="post" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors">
                 Déconnexion
               </Link>
             </template>

@@ -42,7 +42,7 @@ defineProps<Props>();
     <DropdownMenuItem :as-child="true">
         <Link
             class="block w-full"
-            :href="logout()"
+            href="/logout"
             @click="handleLogout"
             as="button"
             data-test="logout-button"

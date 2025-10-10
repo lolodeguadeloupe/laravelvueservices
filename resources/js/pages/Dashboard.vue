@@ -212,13 +212,13 @@ const removeFavorite = (serviceId) => {
                       <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2z" />
                       </svg>
-                      {{ formatDate(booking.scheduled_date) }}
+                      {{ formatDate(booking.preferred_datetime) }}
                     </div>
                     <div class="flex items-center">
                       <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
                       </svg>
-                      {{ formatPrice(booking.price) }}
+                      {{ formatPrice(booking.final_price) }}
                     </div>
                   </div>
                   
@@ -260,8 +260,8 @@ const removeFavorite = (serviceId) => {
                         </div>
                         <p class="text-sm text-gray-600 mb-1">{{ booking.service.provider.profile.company_name }}</p>
                         <div class="flex items-center space-x-4 text-sm text-gray-500">
-                          <span>{{ formatDate(booking.scheduled_date) }}</span>
-                          <span>{{ formatPrice(booking.price) }}</span>
+                          <span>{{ formatDate(booking.preferred_datetime) }}</span>
+                          <span>{{ formatPrice(booking.final_price) }}</span>
                         </div>
                       </div>
                       <div class="ml-4 flex items-center space-x-2">

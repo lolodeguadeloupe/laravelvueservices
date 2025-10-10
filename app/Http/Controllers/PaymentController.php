@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Booking;
+use App\Models\BookingRequest;
 use App\Models\Payment;
 use App\Services\PaymentService;
 use Illuminate\Http\JsonResponse;
@@ -16,7 +16,7 @@ class PaymentController extends Controller
     {
     }
 
-    public function create(Booking $booking): Response
+    public function create(BookingRequest $booking): Response
     {
         $this->authorize('pay', $booking);
 
@@ -28,7 +28,7 @@ class PaymentController extends Controller
         ]);
     }
 
-    public function createIntent(Booking $booking): JsonResponse
+    public function createIntent(BookingRequest $booking): JsonResponse
     {
         $this->authorize('pay', $booking);
 

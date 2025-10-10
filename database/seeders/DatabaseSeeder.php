@@ -42,6 +42,11 @@ class DatabaseSeeder extends Seeder
         ]);
         $client->assignRole('client');
 
+        // Generate demo data
+        $this->call([
+            DemoDataSeeder::class,
+        ]);
+
         $this->command->info('Database seeded successfully!');
     }
 }

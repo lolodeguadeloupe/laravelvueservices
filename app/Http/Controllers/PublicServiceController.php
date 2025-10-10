@@ -15,12 +15,14 @@ class PublicServiceController extends Controller
     public function index(Request $request)
     {
         $query = Service::query()
-            ->with(['category', 'provider.profile', 'media'])
+            ->with(['category', 'provider.profile', 'media', 'reviews'])
             ->where('is_active', true)
             ->whereHas('provider', function ($q) {
                 $q->where('verification_status', 'verified');
             })
-            ->orderBy('created_at', 'desc');
+            ->withAvg('reviews', 'rating')
+            ->withCount('reviews')
+            ->withCount('bookingRequests');
 
         // Filtres
         if ($request->filled('category')) {
@@ -45,24 +47,45 @@ class PublicServiceController extends Controller
         }
 
         if ($request->filled('price_min')) {
-            $query->where('price', '>=', $request->price_min);
+            $query->where('price_min', '>=', $request->price_min);
         }
 
         if ($request->filled('price_max')) {
-            $query->where('price', '<=', $request->price_max);
+            $query->where('price_max', '<=', $request->price_max);
         }
 
-        $services = $query->paginate(12);
+        // Tri
+        $sort = $request->get('sort', 'recent');
+        switch ($sort) {
+            case 'price_asc':
+                $query->orderBy('price_min', 'asc');
+                break;
+            case 'price_desc':
+                $query->orderBy('price_max', 'desc');
+                break;
+            case 'rating':
+                $query->orderByDesc('reviews_avg_rating')
+                      ->orderByDesc('reviews_count');
+                break;
+            case 'popular':
+                $query->orderByDesc('booking_requests_count');
+                break;
+            default: // recent
+                $query->orderBy('created_at', 'desc');
+                break;
+        }
+
+        $services = $query->paginate(12)->withQueryString();
         $categories = Category::orderBy('name')->get();
 
         // Catégories principales avec leurs couleurs et icônes
         $featuredCategories = [
             [
                 'name' => 'Ménage',
-                'subtitle' => 'et repassage',
+                'subtitle' => 'et nettoyage',
                 'cssClass' => 'service-menage',
                 'icon' => '🧽',
-                'slug' => 'menage',
+                'slug' => 'menage-nettoyage',
             ],
             [
                 'name' => 'Garde d\'enfants',
@@ -80,24 +103,24 @@ class PublicServiceController extends Controller
             ],
             [
                 'name' => 'Beauté',
-                'subtitle' => 'à domicile',
+                'subtitle' => 'et soins',
                 'cssClass' => 'service-beaute',
                 'icon' => '💅',
-                'slug' => 'beaute',
+                'slug' => 'beaute-soins',
             ],
             [
                 'name' => 'Massage',
-                'subtitle' => 'à domicile',
+                'subtitle' => 'et bien-être',
                 'cssClass' => 'service-massage',
                 'icon' => '💆',
-                'slug' => 'massage',
+                'slug' => 'massage-bien-etre',
             ],
             [
                 'name' => 'Coach sportif',
                 'subtitle' => 'à domicile',
                 'cssClass' => 'service-coach-sportif',
                 'icon' => '🏋️',
-                'slug' => 'coach-sportif',
+                'slug' => 'coaching-sportif',
             ],
         ];
 

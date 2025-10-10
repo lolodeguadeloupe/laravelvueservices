@@ -101,7 +101,7 @@
                 </Link>
                 <div class="border-t border-gray-100 my-1"></div>
                 <Link
-                  :href="route('logout')"
+                  href="/logout"
                   method="post"
                   class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                 >

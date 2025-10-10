@@ -151,7 +151,7 @@ class User extends Authenticatable
 
     public function getTotalBookingsCount(): int
     {
-        return $this->providerBookings()->completed()->count();
+        return $this->providerBookings()->where('status', 'completed')->count();
     }
 
     // Relations de paiements
