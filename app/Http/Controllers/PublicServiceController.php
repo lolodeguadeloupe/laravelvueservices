@@ -20,7 +20,7 @@ class PublicServiceController extends Controller
             ->whereHas('provider', function ($q) {
                 $q->where('verification_status', 'verified');
             })
-            ->withAvg('reviews', 'rating')
+            ->withAvg('reviews', 'overall_rating')
             ->withCount('reviews')
             ->withCount('bookingRequests');
 
@@ -65,7 +65,7 @@ class PublicServiceController extends Controller
                 break;
             case 'rating':
                 $query->orderByDesc('reviews_avg_rating')
-                      ->orderByDesc('reviews_count');
+                    ->orderByDesc('reviews_count');
                 break;
             case 'popular':
                 $query->orderByDesc('booking_requests_count');

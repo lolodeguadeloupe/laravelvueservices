@@ -22,6 +22,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Docker
 - Use `docker compose` instead of `docker-compose`
 
+### Commandes de gestion
+- `php artisan user:list-roles` - Afficher tous les utilisateurs et leurs rôles
+- `php artisan user:assign-client-role {email}` - Assigner le rôle client à un utilisateur
+- `php artisan provider:verify-all` - Approuver tous les prestataires en attente
+
 ## Architecture Overview
 
 This is a Laravel 12 + Vue 3 + Inertia.js application with the following key architectural patterns:

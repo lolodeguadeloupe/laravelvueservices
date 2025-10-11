@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
+use App\Notifications\BookingStatusChanged;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use App\Notifications\BookingStatusChanged;
 use Illuminate\Support\Str;
 
 class BookingRequest extends Model
@@ -171,12 +171,12 @@ class BookingRequest extends Model
 
     public function canBeAccepted(): bool
     {
-        return $this->isPending();
+        return $this->isPending() || $this->status === 'quoted';
     }
 
     public function canBeRejected(): bool
     {
-        return $this->isPending();
+        return $this->isPending() || $this->status === 'quoted';
     }
 
     public function canBeCancelled(): bool
@@ -260,17 +260,18 @@ class BookingRequest extends Model
 
     public function canBeStarted(): bool
     {
-        return $this->isAccepted() && !$this->started_at;
+        return $this->isAccepted() && ! $this->started_at;
     }
 
     public function canBeFinished(): bool
     {
-        return $this->isInProgress() && $this->started_at && !$this->finished_at;
+        return $this->isInProgress() && $this->started_at && ! $this->finished_at;
     }
 
     public function processPayment(): array
     {
         $commissionService = app(\App\Services\CommissionService::class);
+
         return $commissionService->processPayment($this);
     }
 
@@ -297,7 +298,7 @@ class BookingRequest extends Model
 
     public function getDurationInMinutes(): ?int
     {
-        if (!$this->started_at || !$this->finished_at) {
+        if (! $this->started_at || ! $this->finished_at) {
             return null;
         }
 
@@ -306,13 +307,13 @@ class BookingRequest extends Model
 
     public function hasInterventionReport(): bool
     {
-        return !empty($this->intervention_report);
+        return ! empty($this->intervention_report);
     }
 
     public function logStatusChange(string $newStatus, User $user, ?string $reason = null, ?array $metadata = null): void
     {
         $oldStatus = $this->status;
-        
+
         BookingStatusHistory::logStatusChange(
             $this,
             $oldStatus,
@@ -349,7 +350,7 @@ class BookingRequest extends Model
     {
         // Déterminer qui doit recevoir la notification
         $recipient = null;
-        
+
         if ($changedBy->id === $this->provider_id) {
             // Le prestataire a fait le changement, notifier le client
             $recipient = $this->client;
@@ -361,5 +362,5 @@ class BookingRequest extends Model
         if ($recipient) {
             $recipient->notify(new BookingStatusChanged($this, $newStatus));
         }
-}
+    }
 }

@@ -2,13 +2,18 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Support\Str;
 
 class Service extends Model
 {
+    /** @use HasFactory<\Database\Factories\ServiceFactory> */
+    use HasFactory;
+
     protected $fillable = [
         'category_id',
         'provider_id',
@@ -81,6 +86,11 @@ class Service extends Model
     public function media(): HasMany
     {
         return $this->hasMany(ServiceMedia::class);
+    }
+
+    public function reviews(): HasManyThrough
+    {
+        return $this->hasManyThrough(Review::class, BookingRequest::class);
     }
 
     public function scopeActive($query)

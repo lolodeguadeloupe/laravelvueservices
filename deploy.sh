@@ -9,7 +9,7 @@ echo "🚀 Starting ServicesPro deployment..."
 
 # Wait for database to be ready
 echo "⏳ Waiting for database..."
-until nc -z mysql 3306; do
+until timeout 1 bash -c 'cat < /dev/null > /dev/tcp/mysql/3306'; do
     echo "Database not ready yet..."
     sleep 2
 done
@@ -17,7 +17,7 @@ echo "✅ Database is ready!"
 
 # Wait for Redis to be ready
 echo "⏳ Waiting for Redis..."
-until nc -z redis 6379; do
+until timeout 1 bash -c 'cat < /dev/null > /dev/tcp/redis/6379'; do
     echo "Redis not ready yet..."
     sleep 2
 done
@@ -74,8 +74,8 @@ php artisan route:clear
 
 # Set correct permissions
 echo "🔐 Setting permissions..."
-chown -R www-data:www-data /var/www/html/storage
-chown -R www-data:www-data /var/www/html/bootstrap/cache
+chown -R www:www /var/www/html/storage
+chown -R www:www /var/www/html/bootstrap/cache
 chmod -R 775 /var/www/html/storage
 chmod -R 775 /var/www/html/bootstrap/cache
 

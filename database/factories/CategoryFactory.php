@@ -20,7 +20,7 @@ class CategoryFactory extends Factory
             'name' => $this->faker->words(2, true),
             'description' => $this->faker->text(100),
             'icon' => $this->faker->randomElement(['🏠', '🔧', '🧹', '🎨', '🚗']),
-            'status' => 'active',
+            'is_active' => true,
         ];
     }
 }

@@ -17,12 +17,12 @@ class ServiceFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => \App\Models\User::factory(),
+            'provider_id' => \App\Models\User::factory(),
             'category_id' => \App\Models\Category::factory(),
             'title' => $this->faker->words(3, true),
             'description' => $this->faker->text(200),
-            'price_min' => $this->faker->randomFloat(2, 20, 100),
-            'price_max' => $this->faker->randomFloat(2, 100, 500),
+            'price' => $this->faker->randomFloat(2, 20, 500),
+            'price_type' => $this->faker->randomElement(['fixed', 'hourly']),
             'duration' => $this->faker->randomElement([30, 60, 90, 120, 180]),
             'is_active' => true,
         ];

@@ -14,7 +14,8 @@ class BookingController extends Controller
     public function __construct()
     {
         $this->middleware(['auth', 'verified']);
-        $this->middleware('role:client')->except(['index', 'show']);
+        $this->middleware('role:client')->only(['create', 'store']);
+        $this->middleware('role:provider')->only(['accept', 'reject', 'complete', 'quote', 'startIntervention', 'finishIntervention']);
     }
 
     /**
@@ -23,10 +24,10 @@ class BookingController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        
+
         // Détermine si l'utilisateur est un client ou un prestataire
         $isProvider = $user->hasRole('provider');
-        
+
         $query = BookingRequest::query()
             ->with(['service.category', 'client.profile', 'provider.profile'])
             ->orderBy('created_at', 'desc');
@@ -85,15 +86,15 @@ class BookingController extends Controller
         $service->load(['category', 'provider.profile']);
 
         // Vérifier que l'utilisateur peut faire une demande pour ce service
-        if (!$service->is_active) {
+        if (! $service->is_active) {
             return redirect()->back()->withErrors([
-                'service' => 'Ce service n\'est pas disponible actuellement.'
+                'service' => 'Ce service n\'est pas disponible actuellement.',
             ]);
         }
 
         if (Auth::id() === $service->provider_id) {
             return redirect()->back()->withErrors([
-                'service' => 'Vous ne pouvez pas faire une demande pour votre propre service.'
+                'service' => 'Vous ne pouvez pas faire une demande pour votre propre service.',
             ]);
         }
 
@@ -121,15 +122,15 @@ class BookingController extends Controller
         $service = Service::findOrFail($validated['service_id']);
 
         // Vérifications de sécurité
-        if (!$service->is_active) {
+        if (! $service->is_active) {
             throw ValidationException::withMessages([
-                'service_id' => 'Ce service n\'est pas disponible actuellement.'
+                'service_id' => 'Ce service n\'est pas disponible actuellement.',
             ]);
         }
 
         if (Auth::id() === $service->provider_id) {
             throw ValidationException::withMessages([
-                'service_id' => 'Vous ne pouvez pas faire une demande pour votre propre service.'
+                'service_id' => 'Vous ne pouvez pas faire une demande pour votre propre service.',
             ]);
         }
 
@@ -141,7 +142,7 @@ class BookingController extends Controller
 
         if ($existingBooking) {
             throw ValidationException::withMessages([
-                'service_id' => 'Vous avez déjà une demande en cours pour ce service.'
+                'service_id' => 'Vous avez déjà une demande en cours pour ce service.',
             ]);
         }
 
@@ -154,6 +155,9 @@ class BookingController extends Controller
             'client_address' => $validated['client_address'],
             'client_notes' => $validated['client_notes'],
         ]);
+
+        // Logger la création de la demande
+        $booking->logStatusChange('pending', Auth::user(), 'Demande de service créée');
 
         // TODO: Envoyer une notification au prestataire
 
@@ -177,7 +181,7 @@ class BookingController extends Controller
             'service.category',
             'client.profile',
             'provider.profile',
-            'cancelledBy'
+            'cancelledBy',
         ]);
 
         $isProvider = $user->hasRole('provider');
@@ -190,7 +194,7 @@ class BookingController extends Controller
             'canAccept' => $isProvider && $booking->canBeAccepted(),
             'canReject' => $isProvider && $booking->canBeRejected(),
             'canComplete' => $isProvider && $booking->canBeCompleted(),
-            'canCancel' => $booking->canBeCancelled() && 
+            'canCancel' => $booking->canBeCancelled() &&
                          ($isClient || ($isProvider && $booking->isPending())),
         ]);
     }
@@ -202,14 +206,14 @@ class BookingController extends Controller
     {
         $this->authorize('update', $booking);
 
-        if (!$booking->canBeAccepted()) {
+        if (! $booking->canBeAccepted()) {
             return back()->withErrors([
-                'booking' => 'Cette demande ne peut plus être acceptée.'
+                'booking' => 'Cette demande ne peut plus être acceptée.',
             ]);
         }
 
         $oldStatus = $booking->status;
-        
+
         $booking->update([
             'status' => 'accepted',
             'accepted_at' => now(),
@@ -228,9 +232,9 @@ class BookingController extends Controller
     {
         $this->authorize('update', $booking);
 
-        if (!$booking->canBeRejected()) {
+        if (! $booking->canBeRejected()) {
             return back()->withErrors([
-                'booking' => 'Cette demande ne peut plus être refusée.'
+                'booking' => 'Cette demande ne peut plus être refusée.',
             ]);
         }
 
@@ -256,9 +260,9 @@ class BookingController extends Controller
     {
         $this->authorize('update', $booking);
 
-        if (!$booking->canBeCompleted()) {
+        if (! $booking->canBeCompleted()) {
             return back()->withErrors([
-                'booking' => 'Cette prestation ne peut pas être marquée comme terminée.'
+                'booking' => 'Cette prestation ne peut pas être marquée comme terminée.',
             ]);
         }
 
@@ -291,9 +295,9 @@ class BookingController extends Controller
             abort(403, 'Vous n\'êtes pas autorisé à annuler cette réservation.');
         }
 
-        if (!$booking->canBeCancelled()) {
+        if (! $booking->canBeCancelled()) {
             return back()->withErrors([
-                'booking' => 'Cette réservation ne peut plus être annulée.'
+                'booking' => 'Cette réservation ne peut plus être annulée.',
             ]);
         }
 
@@ -312,18 +316,18 @@ class BookingController extends Controller
 
         // Gérer les remboursements selon le statut et qui annule
         $message = 'Réservation annulée.';
-        
+
         if ($booking->status === 'completed' && $user->hasRole('client')) {
             // Client demande remboursement après service terminé - nécessite gestion de litige
             $message .= ' Votre demande de remboursement sera examinée par notre équipe.';
-            
+
             // Créer un ticket de litige automatiquement
             $booking->createDispute(
                 $user,
                 'refund_request',
-                'Demande de remboursement suite à annulation: ' . $request->cancellation_reason
+                'Demande de remboursement suite à annulation: '.$request->cancellation_reason
             );
-            
+
         } elseif (in_array($booking->status, ['accepted', 'in_progress']) && $user->hasRole('provider')) {
             // Prestataire annule après acceptation - remboursement intégral au client
             try {
@@ -347,9 +351,9 @@ class BookingController extends Controller
     {
         $this->authorize('update', $booking);
 
-        if (!$booking->isPending()) {
+        if (! $booking->isPending()) {
             return back()->withErrors([
-                'booking' => 'Vous ne pouvez plus modifier le devis pour cette demande.'
+                'booking' => 'Vous ne pouvez plus modifier le devis pour cette demande.',
             ]);
         }
 
@@ -384,9 +388,9 @@ class BookingController extends Controller
     {
         $this->authorize('update', $booking);
 
-        if (!$booking->canBeStarted()) {
+        if (! $booking->canBeStarted()) {
             return back()->withErrors([
-                'booking' => 'Cette intervention ne peut pas être démarrée.'
+                'booking' => 'Cette intervention ne peut pas être démarrée.',
             ]);
         }
 
@@ -417,9 +421,9 @@ class BookingController extends Controller
     {
         $this->authorize('update', $booking);
 
-        if (!$booking->canBeFinished()) {
+        if (! $booking->canBeFinished()) {
             return back()->withErrors([
-                'booking' => 'Cette intervention ne peut pas être terminée.'
+                'booking' => 'Cette intervention ne peut pas être terminée.',
             ]);
         }
 
@@ -455,11 +459,11 @@ class BookingController extends Controller
         // Traiter le paiement avec le système de commissions
         try {
             $paymentInfo = $booking->processPayment();
-            
-            return back()->with('success', 'Intervention terminée avec succès. ' . 
-                'Montant: ' . number_format($paymentInfo['total_amount'], 2) . '€, ' .
-                'Commission plateforme: ' . number_format($paymentInfo['commission'], 2) . '€, ' .
-                'Votre gain: ' . number_format($paymentInfo['provider_amount'], 2) . '€');
+
+            return back()->with('success', 'Intervention terminée avec succès. '.
+                'Montant: '.number_format($paymentInfo['total_amount'], 2).'€, '.
+                'Commission plateforme: '.number_format($paymentInfo['commission'], 2).'€, '.
+                'Votre gain: '.number_format($paymentInfo['provider_amount'], 2).'€');
         } catch (\Exception $e) {
             return back()->with('warning', 'Intervention terminée mais un problème est survenu avec le traitement du paiement. Contactez le support.');
         }
@@ -480,7 +484,7 @@ class BookingController extends Controller
             'service.category',
             'client.profile',
             'provider.profile',
-            'statusHistory.changedBy'
+            'statusHistory.changedBy',
         ]);
 
         return response()->json([

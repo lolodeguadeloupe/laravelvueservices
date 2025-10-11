@@ -23,9 +23,14 @@ class BookingRequestFactory extends Factory
             'provider_id' => User::factory(),
             'service_id' => Service::factory(),
             'status' => 'pending',
-            'scheduled_date' => $this->faker->dateTimeBetween('+1 day', '+1 month'),
-            'price' => $this->faker->randomFloat(2, 50, 500),
-            'notes' => $this->faker->optional()->text(200),
+            'preferred_datetime' => $this->faker->dateTimeBetween('+1 day', '+1 month'),
+            'quoted_price' => $this->faker->randomFloat(2, 50, 500),
+            'client_notes' => $this->faker->optional()->text(200),
+            'client_address' => [
+                'street' => $this->faker->streetAddress,
+                'city' => $this->faker->city,
+                'postal_code' => $this->faker->postcode,
+            ],
         ];
     }
 }
